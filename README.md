@@ -3,7 +3,7 @@
 </p>
 
 <p align='center'>
-Reactive file system for <a href="https://github.com/vuejs/vue-next/tree/master/packages/reactivity"><code>@vue/reactivity</code></a>
+Reactive filesystem powered by <a href="https://github.com/vuejs/vue-next/tree/master/packages/reactivity"><code>@vue/reactivity</code></a>
 </p>
 
 <p align='center'>
