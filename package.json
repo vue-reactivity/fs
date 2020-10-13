@@ -1,0 +1,54 @@
+{
+  "name": "@vue-reactivity/fs",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "repository": "https://github.com/vue-reactivity/fs.git",
+  "author": "Anthony Fu <anthonyfu117@hotmail.com>",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "prepare": "npm run build",
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "npm run build -- --watch",
+    "test": "c8 ava",
+    "release": "npx bumpp --tag --commit --push && pnpm publish --access public"
+  },
+  "dependencies": {
+    "@vue-reactivity/watch": "^0.1.4",
+    "@vue/reactivity": ">=3.0.0",
+    "@vue/shared": ">=3.0.0",
+    "chokidar": "^3.4.2"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config-ts": "^0.3.3",
+    "@types/fs-extra": "^9.0.2",
+    "@types/node": "^14.11.8",
+    "@vue-reactivity/when": "^0.1.4",
+    "ava": "^3.13.0",
+    "c8": "^7.3.3",
+    "esbuild-register": "^1.0.2",
+    "eslint": "^7.11.0",
+    "esm": "^3.2.25",
+    "fs-extra": "^9.0.1",
+    "tsup": "^3.7.0",
+    "typescript": "^4.0.3"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "ignoredByWatcher": [
+      "**/temp/**"
+    ],
+    "require": [
+      "esm",
+      "esbuild-register"
+    ]
+  }
+}
