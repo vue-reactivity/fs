@@ -16,7 +16,7 @@ export interface ReactiveFileInfo {
 
 export type ReactiveFileRef = Ref<string | null> & {
   info: Readonly<ReactiveFileInfo>
-  waitForReady: () => Promise<void>
+  waitForReady: () => Promise<ReactiveFileRef>
   readonly ready: boolean
   stop: () => void
 }
@@ -34,7 +34,7 @@ export function useFile(path: string, options: UseFileOptions = {}) {
   const read = throttle == null ? readNow : throttleFn(readNow, throttle)
   const write = throttle == null ? writeNow : throttleFn(writeNow, throttle)
 
-  const file = reactive<ReactiveFileInfo>({
+  const info = reactive<ReactiveFileInfo>({
     path,
     encoding,
     existed: null,
@@ -46,21 +46,22 @@ export function useFile(path: string, options: UseFileOptions = {}) {
 
   async function readNow() {
     if (!fs.existsSync(path)) {
-      file.existed = false
-      file.content = null
-    } else {
-      file.existed = true
+      info.existed = false
+      info.content = null
+    }
+    else {
+      info.existed = true
       const content = await fsp.readFile(path, encoding)
       const stats = await fsp.stat(path)
-      file.content = content
-      file.stats = stats
+      info.content = content
+      info.stats = stats
     }
-    file.lastUpdate = +new Date()
+    info.lastUpdate = +new Date()
   }
 
   async function writeNow(text: string) {
-    file.content = text
-    file.existed = true
+    info.content = text
+    info.existed = true
     await fsp.writeFile(path, text, encoding)
   }
 
@@ -80,24 +81,28 @@ export function useFile(path: string, options: UseFileOptions = {}) {
     stop = () => watcher.close()
   }
 
-  let _readyPromise = readNow().then(() => (ready = true))
-
-  const content = computed<string | null>({
+  const file = computed<string | null>({
     get() {
-      return file.content
+      return info.content
     },
     set(v: string | null) {
-      if (v == null) file.remove()
+      if (v == null) info.remove()
       else write(v)
     },
-  })
+  }) as unknown as ReactiveFileRef
+
+  const _readyPromise = readNow()
+    .then(() => {
+      ready = true
+      return file
+    })
 
   const waitForReady = () => _readyPromise
 
-  Object.defineProperty(content, 'info', { value: readonly(file) })
-  Object.defineProperty(content, 'waitForReady', { value: waitForReady })
-  Object.defineProperty(content, 'ready', { get: () => ready })
-  Object.defineProperty(content, 'stop', { value: stop })
+  Object.defineProperty(file, 'info', { value: readonly(info) })
+  Object.defineProperty(file, 'waitForReady', { value: waitForReady })
+  Object.defineProperty(file, 'ready', { get: () => ready })
+  Object.defineProperty(file, 'stop', { value: stop })
 
-  return (content as unknown) as ReactiveFileRef
+  return file
 }

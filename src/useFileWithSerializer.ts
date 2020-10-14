@@ -15,17 +15,19 @@ export type SerializerOptions<T> = SerializerBaseOptions<T> & {
 
 export type ReactiveSerializedFileRef<T> = Ref<T> & {
   file: ReactiveFileRef
+  waitForReady: () => Promise<ReactiveSerializedFileRef<T>>
+  readonly ready: boolean
   stop: () => void
 }
 
 export function useFileWithSerializer<T>(path: string, options: SerializerOptions<T>): ReactiveSerializedFileRef<T>
-export function useFileWithSerializer<T>(path: string, options: SerializerOptions<T> & { initialValue?: undefined }): ReactiveSerializedFileRef<T | null>
+export function useFileWithSerializer<T>(path: string, options: SerializerOptions<T> & { initialValue?: undefined }): ReactiveSerializedFileRef<T | undefined>
 export function useFileWithSerializer<T>(path: string, options: SerializerOptions<T>) {
   const { initialValue, serialize, deserialize, deep = true } = options
   const file = useFile(path, options)
   let lock = false
 
-  const serialized = ref(initialValue) as Ref<T | undefined>
+  const serialized = ref(initialValue) as unknown as ReactiveSerializedFileRef<T | undefined>
 
   const subs = [file.stop]
 
@@ -36,7 +38,7 @@ export function useFileWithSerializer<T>(path: string, options: SerializerOption
         lock = true
         serialized.value = file.value ? await deserialize(file.value) : initialValue
         lock = false
-      }
+      },
     ),
   )
 
@@ -56,8 +58,12 @@ export function useFileWithSerializer<T>(path: string, options: SerializerOption
     subs.forEach(i => i && i())
   }
 
+  const waitForReady = file.waitForReady().then(() => serialized)
+
   Object.defineProperty(serialized, 'file', { value: file })
   Object.defineProperty(serialized, 'stop', { value: stop })
+  Object.defineProperty(serialized, 'waitForReady', { value: waitForReady })
+  Object.defineProperty(serialized, 'ready', { get: () => file.ready })
 
-  return serialized as unknown as ReactiveSerializedFileRef<T>
+  return serialized
 }

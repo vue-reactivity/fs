@@ -19,14 +19,14 @@ npm i @vue-reactivity/<b>fs</b>
 
 ### Usage
 
-> Work only in  Node.js
+> Work only in Node.js
+
+#### Async usage
 
 ```ts
 import { useFile } from '@vue-reactivity/fs'
 
-const fileRef = useFile('messages.txt')
-
-await fileRef.waitForReady()
+const fileRef = await useFile('messages.txt').waitForReady()
 
 console.log(fileRef.value) // output file content
 
@@ -35,13 +35,25 @@ fileRef.value += 'Hello World' // append to file
 fileRef.value = 'Good Morning' // write to file
 ```
 
-Watch for file changes (via [`chokidar`](https://github.com/paulmillr/chokidar))
+#### Callback usage
+
+```ts
+import { useFile } from '@vue-reactivity/fs'
+
+useFile('messages.txt')
+  .waitForReady()
+  .then(fileRef => {
+    console.log(fileRef.value) // output file content
+  })
+```
+
+#### Watch for file changes (via [`chokidar`](https://github.com/paulmillr/chokidar))
 
 ```ts
 const fileRef = useFile('messages.txt', { watchFileChanges: true })
 ```
 
-`useJson`
+#### `useJson`
 
 ```ts
 import { useJSON } from '@vue-reactivity/fs'
@@ -53,7 +65,7 @@ console.log(data.value) // { foo: 'bar' }
 data.value = { bar: 'foo' } // write to json file
 ```
 
-Custom serializer
+#### Custom serializer
 
 ```ts
 import YAML from 'js-yaml'
